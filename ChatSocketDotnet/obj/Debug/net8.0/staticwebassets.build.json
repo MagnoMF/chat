@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "ocqM1lTsC6w6zcSoyeIzAqWIPXs67hwQPVdTxmNr2U8=",
+  "Source": "chatSocketDotnet",
+  "BasePath": "_content/chatSocketDotnet",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
