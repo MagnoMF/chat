@@ -1,4 +1,4 @@
-import { Button, TextInput } from "@mantine/core";
+import { Button, FileInput, TextInput } from "@mantine/core";
 import { useState } from "react";
 
 export default function SendMessage({
@@ -7,7 +7,6 @@ export default function SendMessage({
   sendMessage: Function;
 }) {
   const [message, setMessage] = useState<string>("");
-
   return (
     <>
       <form
