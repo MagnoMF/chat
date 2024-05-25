@@ -1,4 +1,4 @@
-@chatSocketDotnet_HostAddress = http://localhost:5117
+@chatSocketDotnet_HostAddress = http://192.168.1.106:5117
 
 GET {{chatSocketDotnet_HostAddress}}/weatherforecast/
 Accept: application/json

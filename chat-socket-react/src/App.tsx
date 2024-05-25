@@ -3,33 +3,54 @@ import {
   HubConnectionBuilder,
   LogLevel,
 } from "@microsoft/signalr";
-import { Container, Title } from "@mantine/core";
-import WaitingRoom from "./components/WaitingRoom";
+import { Container, Grid } from "@mantine/core";
 import { useState } from "react";
 import ChatRoom from "./components/ChatRoom";
-import SendMessage from "./components/SendMessage";
+import ListContacts from "./components/ListContacts";
+import UserNameModal from "./components/UserNameModal";
+import ModalDeleteChat from "./components/ModalDeleteChat";
 
 function App() {
-  const [connection, setConnection] = useState<HubConnection | null>(null);
-  const [messages, setMessages] = useState<{ userName: string; msg: string }[]>(
-    []
-  );
+  const [connections, setConnections] = useState<
+    {
+      chatRoom: string;
+      conn: HubConnection;
+    }[]
+  >([]);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [modalUserName, setModalUserName] = useState<boolean>(true);
+  const [activeConnection, setActiveConnection] = useState<{
+    chatRoom: string;
+    conn: HubConnection;
+  } | null>(null);
+  const [messages, setMessages] = useState<
+    { chatRoom: string; userName: string; msg: string }[]
+  >([]);
+  const [modalDeleteChat, setModalDeleteChat] = useState<boolean>(false);
+  function removeRoom(chatRoom: string) {
+    setConnections(connections.filter((chat) => chat.chatRoom !== chatRoom));
+    setMessages(messages.filter((msg) => msg.chatRoom !== chatRoom));
+  }
 
-  async function joinChatRoom(userName: string, chatRoom: string) {
+  async function addChatRoom(chatRoom: string) {
+    if (connections.length === 5)
+      return alert("Quantidade Máxima de conexões atingida (5)");
     try {
+      const existsCon = connections.filter(
+        (chat) => chat.chatRoom === chatRoom
+      );
+      if (existsCon.length > 0) return;
       const conn = new HubConnectionBuilder()
-        .withUrl("http://localhost:5117/chat")
+        .withUrl("http://192.168.1.106:5117/chat")
         .configureLogging(LogLevel.Information)
         .build();
 
       conn.on("JoinSpecificChatRoom", (userName, msg) => {
-        console.log("msg: ", msg, "userName", userName);
-        setMessages((messages) => [...messages, { userName, msg }]);
+        setMessages((messages) => [...messages, { chatRoom, userName, msg }]);
       });
 
       conn.on("ReceiveSpecificMessage", (userName, msg) => {
-        console.log("AKA", userName, msg);
-        setMessages((messages) => [...messages, { userName, msg }]);
+        setMessages((messages) => [...messages, { chatRoom, userName, msg }]);
       });
 
       await conn.start();
@@ -37,7 +58,7 @@ function App() {
         Username: userName,
         ChatRoom: chatRoom,
       });
-      setConnection(conn);
+      setConnections([...connections, { chatRoom, conn }]);
     } catch (err) {
       console.log(err);
     }
@@ -45,7 +66,7 @@ function App() {
 
   async function sendMessage(msg: string) {
     try {
-      await connection?.invoke("SendMessage", msg);
+      msg.trim() && (await activeConnection?.conn.invoke("SendMessage", msg));
     } catch (err) {
       console.log(err);
     }
@@ -53,16 +74,52 @@ function App() {
 
   return (
     <div className="App">
-      <Container>
-        <Title order={1}>Chat 100% Original & Seguro</Title>
-        {!connection ? (
-          <WaitingRoom joinChatRoom={joinChatRoom} />
-        ) : (
-          <>
-            <ChatRoom messages={messages} />
-            <SendMessage sendMessage={sendMessage} />
-          </>
-        )}
+      <UserNameModal
+        setModalUserName={setModalUserName}
+        modalUserName={modalUserName}
+        userName={userName}
+        setUserName={setUserName}
+      />
+      <ModalDeleteChat
+        setActiveConnection={setActiveConnection}
+        chatRoom={activeConnection?.chatRoom}
+        openedDeleteChat={modalDeleteChat}
+        setOpenedDeleteChat={setModalDeleteChat}
+        removeChatRoom={removeRoom}
+      />
+      <Container
+        size="md"
+        p="md"
+        style={{
+          height: "100vh",
+          border: "2px solid #5D5D5D",
+          borderRadius: "5px",
+          backgroundColor: "#F4F4F4",
+        }}
+      >
+        <Grid columns={12}>
+          <Grid.Col
+            style={{ borderRight: "1px solid #5D5D5D", height: "98vh" }}
+            span={4}
+          >
+            <ListContacts
+              setModalDeleteChat={setModalDeleteChat}
+              connections={connections}
+              addChatRoom={addChatRoom}
+              setActiveConnection={setActiveConnection}
+            />
+          </Grid.Col>
+          <Grid.Col span={8}>
+            {activeConnection && (
+              <ChatRoom
+                userNameChat={userName}
+                activeConnection={activeConnection}
+                messages={messages}
+                sendMessage={sendMessage}
+              />
+            )}
+          </Grid.Col>
+        </Grid>
       </Container>
     </div>
   );
