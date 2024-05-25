@@ -3,10 +3,12 @@ import {
   HubConnectionBuilder,
   LogLevel,
 } from "@microsoft/signalr";
-import { Button, Center, Container, Grid, Input, Modal } from "@mantine/core";
+import { Container, Grid } from "@mantine/core";
 import { useState } from "react";
 import ChatRoom from "./components/ChatRoom";
 import ListContacts from "./components/ListContacts";
+import UserNameModal from "./components/UserNameModal";
+import ModalDeleteChat from "./components/ModalDeleteChat";
 
 function App() {
   const [connections, setConnections] = useState<
@@ -21,11 +23,18 @@ function App() {
     chatRoom: string;
     conn: HubConnection;
   } | null>(null);
-  const [messages, setMessages] = useState<{ userName: string; msg: string }[]>(
-    []
-  );
+  const [messages, setMessages] = useState<
+    { chatRoom: string; userName: string; msg: string }[]
+  >([]);
+  const [modalDeleteChat, setModalDeleteChat] = useState<boolean>(false);
+  function removeRoom(chatRoom: string) {
+    setConnections(connections.filter((chat) => chat.chatRoom !== chatRoom));
+    setMessages(messages.filter((msg) => msg.chatRoom !== chatRoom));
+  }
 
   async function addChatRoom(chatRoom: string) {
+    if (connections.length === 5)
+      return alert("Quantidade Máxima de conexões atingida (5)");
     try {
       const existsCon = connections.filter(
         (chat) => chat.chatRoom === chatRoom
@@ -37,11 +46,11 @@ function App() {
         .build();
 
       conn.on("JoinSpecificChatRoom", (userName, msg) => {
-        setMessages((messages) => [...messages, { userName, msg }]);
+        setMessages((messages) => [...messages, { chatRoom, userName, msg }]);
       });
 
       conn.on("ReceiveSpecificMessage", (userName, msg) => {
-        setMessages((messages) => [...messages, { userName, msg }]);
+        setMessages((messages) => [...messages, { chatRoom, userName, msg }]);
       });
 
       await conn.start();
@@ -57,8 +66,7 @@ function App() {
 
   async function sendMessage(msg: string) {
     try {
-      console.log(activeConnection?.chatRoom);
-      await activeConnection?.conn.invoke("SendMessage", msg);
+      msg.trim() && (await activeConnection?.conn.invoke("SendMessage", msg));
     } catch (err) {
       console.log(err);
     }
@@ -66,30 +74,19 @@ function App() {
 
   return (
     <div className="App">
-      <Modal
-        opened={modalUserName || !userName}
-        onClose={() =>
-          userName ? setModalUserName(false) : setModalUserName(true)
-        }
-        title="Seu nome"
-        transitionProps={{ transition: "fade", duration: 200 }}
-      >
-        <Center>
-          <Input
-            onChange={(e) => setUserName(e.target.value.trim().toLowerCase())}
-            placeholder="Digite seu nome"
-          />
-        </Center>
-        <Center style={{ marginTop: "15px" }}>
-          <Button
-            onClick={() => setModalUserName(false)}
-            variant="filled"
-            color="grape"
-          >
-            Salvar
-          </Button>
-        </Center>
-      </Modal>
+      <UserNameModal
+        setModalUserName={setModalUserName}
+        modalUserName={modalUserName}
+        userName={userName}
+        setUserName={setUserName}
+      />
+      <ModalDeleteChat
+        setActiveConnection={setActiveConnection}
+        chatRoom={activeConnection?.chatRoom}
+        openedDeleteChat={modalDeleteChat}
+        setOpenedDeleteChat={setModalDeleteChat}
+        removeChatRoom={removeRoom}
+      />
       <Container
         size="md"
         p="md"
@@ -106,6 +103,7 @@ function App() {
             span={4}
           >
             <ListContacts
+              setModalDeleteChat={setModalDeleteChat}
               connections={connections}
               addChatRoom={addChatRoom}
               setActiveConnection={setActiveConnection}
@@ -113,7 +111,12 @@ function App() {
           </Grid.Col>
           <Grid.Col span={8}>
             {activeConnection && (
-              <ChatRoom messages={messages} sendMessage={sendMessage} />
+              <ChatRoom
+                userNameChat={userName}
+                activeConnection={activeConnection}
+                messages={messages}
+                sendMessage={sendMessage}
+              />
             )}
           </Grid.Col>
         </Grid>

@@ -1,4 +1,4 @@
-import { Avatar, Button } from "@mantine/core";
+import { Avatar } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import ModalAddChatRoom from "./ModalAddChatRoom";
 import { useState } from "react";
@@ -8,10 +8,12 @@ function ListContacts({
   connections,
   addChatRoom,
   setActiveConnection,
+  setModalDeleteChat,
 }: {
   connections: { chatRoom: string; conn: HubConnection }[];
   addChatRoom: Function;
   setActiveConnection: Function;
+  setModalDeleteChat: Function;
 }) {
   const [openModal, setOpenModal] = useState(false);
 
@@ -26,7 +28,7 @@ function ListContacts({
         return (
           <div
             onClick={() => setActiveConnection(connection)}
-            key={key}
+            key={"contact" + key}
             style={{
               backgroundColor: "#E3E3E3",
               alignItems: "center",
@@ -40,7 +42,9 @@ function ListContacts({
             }}
           >
             <Avatar variant="filled" radius="xl" src="" />
-            <p>{connection.chatRoom}</p>
+            <p style={{ fontWeight: "600", fontSize: "16px" }}>
+              {connection.chatRoom}
+            </p>
           </div>
         );
       })}
@@ -65,6 +69,7 @@ function ListContacts({
           }}
         />
         <IconTrash
+          onClick={() => setModalDeleteChat(true)}
           style={{
             padding: "8px",
             backgroundColor: "#FF7878",

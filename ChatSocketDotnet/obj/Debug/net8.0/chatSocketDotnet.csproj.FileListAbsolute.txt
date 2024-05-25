@@ -76,3 +76,4 @@ E:\GitProjetos\Chat\ChatSocketDotnet\obj\Debug\net8.0\refint\chatSocketDotnet.dl
 E:\GitProjetos\Chat\ChatSocketDotnet\obj\Debug\net8.0\chatSocketDotnet.pdb
 E:\GitProjetos\Chat\ChatSocketDotnet\obj\Debug\net8.0\chatSocketDotnet.genruntimeconfig.cache
 E:\GitProjetos\Chat\ChatSocketDotnet\obj\Debug\net8.0\ref\chatSocketDotnet.dll
+E:\GitProjetos\Chat\ChatSocketDotnet\obj\Debug\net8.0\chatSocketDotnet.sourcelink.json

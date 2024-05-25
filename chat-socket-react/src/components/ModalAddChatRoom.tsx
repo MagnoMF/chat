@@ -20,10 +20,17 @@ function ModalAddChatRoom({
       transitionProps={{ transition: "fade", duration: 200 }}
     >
       <Center>
-        <Input onChange={(e) => setChatRoom(e.target.value)} placeholder="Nome sala" />
+        <Input
+          onChange={(e) => setChatRoom(e.target.value)}
+          placeholder="Nome sala"
+        />
       </Center>
       <Center style={{ marginTop: "15px" }}>
-        <Button onClick={() => addChatRoom(chatRoom.trim().toLowerCase())} variant="filled" color="grape">
+        <Button
+          onClick={() => addChatRoom(chatRoom.trim().toLowerCase())}
+          variant="filled"
+          color="blue"
+        >
           Adicionar
         </Button>
       </Center>
